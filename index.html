@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выполнение запросов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            width: 1000px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+        }
+
+        .form-section {
+            flex: 1;
+        }
+
+        .output-section {
+            flex: 1;
+        }
+
+        .form-section label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .form-section input, .form-section textarea, .form-section button {
+            width: 80%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-section textarea {
+            resize: none;
+            height: 60px;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-section button {
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .form-section button:hover {
+            background-color: #45a049;
+        }
+
+        .output {
+            width: auto;
+            height: 700px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-section">
+        <h3>Выполнение запросов</h3>
+
+        <label for="idInstance">idInstance</label>
+        <input type="text" id="idInstance">
+        <label for="apiTokenInstance">apiTokenInstance</label>
+        <input type="text" id="apiTokenInstance">
+
+        <div style="height: 30px;"></div>
+
+        <button onclick="callGetMethod('getSettings')">getSettings</button>
+        <button onclick="callGetMethod('getStateInstance')">getStateInstance</button>
+
+        <div style="height: 30px;"></div>
+
+        <label for="msgChatId">Номер телефона</label>
+        <input type="text" id="msgChatId">
+        <label for="message">Сообщение</label>
+        <textarea id="message"></textarea>
+
+        <button onclick="sendMessage()">sendMessage</button>
+
+        <div style="height: 30px;"></div>
+
+        <label for="fileChatId">Номер телефона</label>
+        <input type="text" id="fileChatId">
+        <label for="urlFile">Ссылка на файл</label>
+        <input type="url" id="urlFile">
+
+        <button onclick="sendFileByUrl()">sendFileByUrl</button>
+    </div>
+
+    <div class="output-section">
+        <h3>Ответ:</h3>
+        <div class="output" id="output">Текст ответа</div>
+    </div>
+</div>
+
+<script>
+    function callGetMethod(method) {
+        const apiUrl = 'https://api.green-api.com';
+        const idInstance = document.getElementById('idInstance').value;
+        const apiTokenInstance = document.getElementById('apiTokenInstance').value;
+
+        const url = `${apiUrl}/waInstance${idInstance}/${method}/${apiTokenInstance}`;
+
+        const requestOptions = {
+            method: "GET"
+        };
+
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+            })
+            .catch(error => {
+                console.error('Ошибка GET:', error);
+                document.getElementById('output').textContent = 'Ошибка при выполнении GET запроса';
+            });
+    }
+
+
+    function callPostMethod(method, rawData) {
+        const apiUrl = 'https://api.green-api.com';
+        const idInstance = document.getElementById('idInstance').value;
+        const apiTokenInstance = document.getElementById('apiTokenInstance').value;
+
+        const url = `${apiUrl}/waInstance${idInstance}/${method}/${apiTokenInstance}`;
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify(rawData);
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw
+        };
+
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+            })
+            .catch(error => {
+                console.error('Ошибка POST:', error);
+                document.getElementById('output').textContent = 'Ошибка при выполнении POST запроса';
+            });
+    }
+
+    function sendMessage() {
+        const chatId = document.getElementById('msgChatId').value;
+        const message = document.getElementById('message').value;
+        callPostMethod('sendMessage', {
+            chatId: `${chatId}@c.us`,
+            message: message
+        })
+    }
+
+    function sendFileByUrl() {
+        const chatId = document.getElementById('fileChatId').value;
+        const urlFile = document.getElementById('urlFile').value;
+        callPostMethod('sendFileByUrl', {
+            chatId: `${chatId}@c.us`,
+            urlFile: urlFile,
+            fileName: "test.jpg"
+        })
+    }
+</script>
+
+</body>
+</html>
